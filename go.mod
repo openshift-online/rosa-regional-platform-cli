@@ -4,19 +4,19 @@ go 1.26.3
 
 require (
 	github.com/aws/aws-lambda-go v1.54.0
-	github.com/aws/aws-sdk-go-v2 v1.43.2
-	github.com/aws/aws-sdk-go-v2/config v1.32.22
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.30
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.71.15
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.308.0
-	github.com/aws/aws-sdk-go-v2/service/ecr v1.58.2
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.36.0
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.58.1
-	github.com/aws/aws-sdk-go-v2/service/iam v1.54.2
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.92.1
-	github.com/aws/aws-sdk-go-v2/service/route53 v1.65.2
-	github.com/aws/aws-sdk-go-v2/service/sts v1.45.0
-	github.com/aws/smithy-go v1.27.5
+	github.com/aws/aws-sdk-go-v2 v1.43.7
+	github.com/aws/aws-sdk-go-v2/config v1.32.38
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.37
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.76.4
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.322.0
+	github.com/aws/aws-sdk-go-v2/service/ecr v1.60.7
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing v1.36.7
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.58.8
+	github.com/aws/aws-sdk-go-v2/service/iam v1.59.2
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.102.0
+	github.com/aws/aws-sdk-go-v2/service/route53 v1.65.9
+	github.com/aws/aws-sdk-go-v2/service/sts v1.45.7
+	github.com/aws/smithy-go v1.27.8
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.42.1
 	github.com/openshift-online/rosa-hyperfleet-api/api v0.0.0
@@ -27,16 +27,16 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.12 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.31 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.31 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.31 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.32 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.13 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.31 // indirect
-	github.com/aws/aws-sdk-go-v2/service/signin v1.5.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.33.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.38.0 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.18 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.38 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.38 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.38 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.39 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.17 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.38 // indirect
+	github.com/aws/aws-sdk-go-v2/service/signin v1.5.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.33.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.38.7 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
