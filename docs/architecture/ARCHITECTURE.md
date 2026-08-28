@@ -18,100 +18,32 @@
 
 ### Primary Mode: Direct CloudFormation
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Customer Environment                        │
-│                                                                 │
-│  ┌──────────────┐                                               │
-│  │   Developer  │                                               │
-│  │   Machine    │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         │ 1. rosactl cluster-vpc create my-cluster              │
-│         │    (CLI with embedded CloudFormation templates)       │
-│         ▼                                                       │
-│  ┌──────────────────────┐                                       │
-│  │  CloudFormation      │                                       │
-│  │  Stack (VPC)         │                                       │
-│  │  rosa-my-cluster-vpc │                                       │
-│  └──────────┬───────────┘                                       │
-│             │ Creates                                           │
-│             ▼                                                   │
-│  ┌─────────────────────────────────────────┐                    │
-│  │  VPC Resources                          │                    │
-│  │  - VPC (10.0.0.0/16)                    │                    │
-│  │  - 3 Public + 3 Private Subnets         │                    │
-│  │  - Internet Gateway, NAT Gateway(s)     │                    │
-│  │  - Route Tables, Security Groups        │                    │
-│  │  - Route53 Private Hosted Zone          │                    │
-│  └─────────────────────────────────────────┘                    │
-│                                                                 │
-│         │                                                       │
-│         │ 2. rosactl cluster-iam create my-cluster              │
-│         │    --oidc-issuer-url https://d1234.cloudfront...      │
-│         ▼                                                       │
-│  ┌──────────────────────┐                                       │
-│  │  CloudFormation      │                                       │
-│  │  Stack (IAM)         │                                       │
-│  │  rosa-my-cluster-iam │                                       │
-│  └──────────┬───────────┘                                       │
-│             │ Creates                                           │
-│             ▼                                                   │
-│  ┌─────────────────────────────────────────┐                    │
-│  │  IAM Resources                          │                    │
-│  │  - IAM OIDC Provider                    │                    │
-│  │  - 7 Control Plane Roles                │                    │
-│  │  - Worker Node Role + Instance Profile  │                    │
-│  └─────────────────────────────────────────┘                    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Customer["Customer Environment"]
+        Dev["Developer Machine"]
+        Dev -->|"1. rosactl cluster-vpc create"| CFN_VPC["CloudFormation Stack\nrosa-my-cluster-vpc"]
+        CFN_VPC -->|Creates| VPC["VPC Resources\nVPC, 3 Public + 3 Private Subnets\nIGW, NAT GW, Route Tables, SGs\nRoute53 Private Hosted Zone"]
+        Dev -->|"2. rosactl cluster-iam create"| CFN_IAM["CloudFormation Stack\nrosa-my-cluster-iam"]
+        CFN_IAM -->|Creates| IAM["IAM Resources\nIAM OIDC Provider\n7 Control Plane Roles\nWorker Node Role + Instance Profile"]
+    end
 
-┌─────────────────────────────────────────────────────────────────┐
-│               Red Hat Management Cluster                        │
-│                                                                 │
-│  ┌──────────────────────────────────────┐                       │
-│  │  OIDC Issuer Infrastructure          │                       │
-│  │  - CloudFront Distribution           │                       │
-│  │  - Private S3 Bucket + OAC           │                       │
-│  │  - HyperShift-managed RSA Keys       │                       │
-│  └──────────────────────────────────────┘                       │
-│                                                                 │
-│  Customer's IAM OIDC Provider points here ──────────────────────┤
-│  (e.g., https://d1234.cloudfront.net/cluster-name)             │
-└─────────────────────────────────────────────────────────────────┘
+    subgraph RedHat["Red Hat Management Cluster"]
+        OIDC["OIDC Issuer Infrastructure\nCloudFront Distribution\nPrivate S3 Bucket + OAC\nHyperShift-managed RSA Keys"]
+    end
+
+    IAM -.->|"IAM OIDC Provider trusts"| OIDC
 ```
 
 ### Optional Mode: Lambda for Event-Driven Workflows
 
 Lambda bootstrap is **optional** and used for CI/CD integration or event-driven automation. The same rosactl binary runs as a Lambda function via the `handler` subcommand.
 
-```text
-┌──────────────┐
-│   AWS Event  │
-│   Source     │
-└──────┬───────┘
-       │  JSON event payload
-       ▼  { "action": "apply-cluster-vpc", ... }
-┌──────────────────────┐
-│  Lambda Function     │
-│  (Container: rosactl)│
-│  CMD: ["handler"]    │
-│  - Embedded Templates│
-│  - Same Binary       │
-└──────────┬───────────┘
-           │  delegates to service layer
-           ▼
-┌──────────────────────┐
-│  Service Layer       │
-│  clustervpc /        │
-│  clusteriam          │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│  CloudFormation      │
-│  Stacks (VPC + IAM)  │
-└──────────────────────┘
+```mermaid
+flowchart TD
+    Event["AWS Event Source"] -->|"JSON event payload"| Lambda["Lambda Function\n(Container: rosactl)\nCMD: handler"]
+    Lambda -->|"delegates to"| Service["Service Layer\nclustervpc / clusteriam"]
+    Service --> CFN["CloudFormation\nStacks (VPC + IAM)"]
 ```
 
 ## Components
@@ -131,6 +63,31 @@ Command-line interface built with Cobra framework.
 - `cluster-iam create` - Create IAM resources (OIDC provider + roles)
 - `cluster-iam delete` - Delete IAM stack
 - `cluster-iam list` - List all IAM stacks
+
+**Cluster OIDC Management**:
+
+- `cluster-oidc create` - Create IAM OIDC provider via CloudFormation and update IAM trust policies
+- `cluster-oidc delete` - Delete OIDC provider stack
+- `cluster-oidc list` - List OIDC stacks
+
+**Cluster Lifecycle** (via platform API using hyperfleet-api clientset):
+
+- `cluster create` - Create a ROSA hosted cluster through the platform API
+- `cluster list` - List clusters from the platform API
+- `cluster delete` - Delete a cluster through the platform API
+- `cluster kubeconfig` - Generate a kubeconfig for cluster access (uses embedded template with STS-based auth)
+- `cluster get-token` - Generate a short-lived STS presigned token for cluster authentication
+
+**Node Pool Management** (via platform API using hyperfleet-api clientset):
+
+- `nodepool create` - Create a node pool for a cluster
+- `nodepool list` - List node pools for a cluster
+- `nodepool delete` - Delete a node pool
+
+**Session Management**:
+
+- `login` - Configure the CLI with a platform API URL for subsequent commands
+- `version` - Display binary version and git commit
 
 **Optional Lambda Bootstrap**:
 
