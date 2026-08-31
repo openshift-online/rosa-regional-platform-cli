@@ -61,6 +61,11 @@ func NewConfig(ctx context.Context) (aws.Config, error) {
 		opts = append(opts, config.WithSharedConfigProfile(profile))
 	}
 
+	// FedRAMP SC-13 / IA-7: require FIPS 140-3 validated endpoints for all
+	// AWS API calls. FIPS endpoints are required when operating in GovCloud
+	// or any FedRAMP-authorized environment.
+	opts = append(opts, config.WithUseFIPSEndpoint(aws.FIPSEndpointStateEnabled))
+
 	cfg, err := config.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return aws.Config{}, err
