@@ -32,7 +32,12 @@ type GenerateClusterConfigRequest struct {
 	MultiAZ            bool
 	LabelEnvironment   string
 	LabelTeam          string
-	AWSConfig          aws.Config
+	// OidcConfigID, if set, selects the managed-OIDC flow: the platform API
+	// looks up the referenced OidcConfig itself and derives
+	// hostedCluster.issuerURL from it (that field is service-set and cannot
+	// be supplied directly — see spec.oidcConfigId in ClusterSpec).
+	OidcConfigID string
+	AWSConfig    aws.Config
 }
 
 // GenerateClusterConfigResponse contains the generated cluster configuration
@@ -121,6 +126,9 @@ func GenerateClusterConfig(ctx context.Context, req *GenerateClusterConfigReques
 			},
 		},
 	}
+	// oidcConfigId selects the managed-OIDC flow; the platform API resolves it
+	// to hostedCluster.issuerURL itself (issuerURL cannot be set directly).
+	spec["oidcConfigId"] = req.OidcConfigID
 
 	// Build labels
 	labels := map[string]interface{}{
@@ -241,26 +249,9 @@ func SubmitCluster(ctx context.Context, req *SubmitClusterRequest) (*SubmitClust
 		cluster = &modifiedCluster
 	}
 
-	// Load AWS config
-	awsCfg, err := awsconfig.LoadDefaultConfig(ctx)
+	cs, err := newHyperfleetClientset(ctx, req.PlatformAPIURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load AWS config: %w", err)
-	}
-
-	// Get account ID
-	accountID, err := pkgconfig.GetAccountID()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get account ID: %w", err)
-	}
-
-	// Create clientset
-	cs, err := hyperfleet.NewForConfig(&hfrest.Config{
-		Host:      req.PlatformAPIURL,
-		AccountID: accountID,
-		AWSConfig: awsCfg,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create clientset: %w", err)
+		return nil, err
 	}
 
 	// Create cluster via clientset
@@ -272,6 +263,31 @@ func SubmitCluster(ctx context.Context, req *SubmitClusterRequest) (*SubmitClust
 	return &SubmitClusterResponse{
 		Cluster: createdCluster,
 	}, nil
+}
+
+// newHyperfleetClientset builds a platform API clientset authenticated via the
+// caller's default AWS credentials (SigV4).
+func newHyperfleetClientset(ctx context.Context, platformAPIURL string) (*hyperfleet.Clientset, error) {
+	awsCfg, err := awsconfig.LoadDefaultConfig(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load AWS config: %w", err)
+	}
+
+	accountID, err := pkgconfig.GetAccountID()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get account ID: %w", err)
+	}
+
+	cs, err := hyperfleet.NewForConfig(&hfrest.Config{
+		Host:      platformAPIURL,
+		AccountID: accountID,
+		AWSConfig: awsCfg,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create clientset: %w", err)
+	}
+
+	return cs, nil
 }
 
 // toCamelCase converts a PascalCase string to camelCase

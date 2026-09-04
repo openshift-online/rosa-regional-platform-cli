@@ -25,6 +25,7 @@ type createOptions struct {
 	multiAZ            bool
 	labelEnvironment   string
 	labelTeam          string
+	oidcConfigID       string
 	dryRun             bool
 	outputFile         string
 	payloadFile        string
@@ -97,6 +98,7 @@ Examples:
 	cmd.Flags().BoolVar(&opts.multiAZ, "multi-az", opts.multiAZ, "Enable multi-AZ deployment (dry-run mode only)")
 	cmd.Flags().StringVar(&opts.labelEnvironment, "label-environment", opts.labelEnvironment, "Environment label (dry-run mode only)")
 	cmd.Flags().StringVar(&opts.labelTeam, "label-team", opts.labelTeam, "Team label (dry-run mode only)")
+	cmd.Flags().StringVar(&opts.oidcConfigID, "oidc-config-id", "", "Existing OidcConfig ID whose issuer URL should be used for the cluster (dev/testing)")
 	cmd.Flags().BoolVar(&opts.dryRun, "dry-run", false, "Generate cluster configuration without submitting to API")
 	cmd.Flags().StringVar(&opts.outputFile, "output-file", "", "Output file for cluster configuration (default in dry-run: <cluster-name>-cluster.json)")
 	cmd.Flags().StringVar(&opts.payloadFile, "payload", "", "JSON payload file to POST to platform API")
@@ -156,6 +158,7 @@ func runCreateDryRun(ctx context.Context, opts *createOptions) error {
 		MultiAZ:            opts.multiAZ,
 		LabelEnvironment:   opts.labelEnvironment,
 		LabelTeam:          opts.labelTeam,
+		OidcConfigID:       opts.oidcConfigID,
 		AWSConfig:          cfg,
 	}
 
@@ -205,6 +208,7 @@ func runCreateAndSubmit(ctx context.Context, opts *createOptions) error {
 		MultiAZ:            opts.multiAZ,
 		LabelEnvironment:   opts.labelEnvironment,
 		LabelTeam:          opts.labelTeam,
+		OidcConfigID:       opts.oidcConfigID,
 		AWSConfig:          cfg,
 	}
 
