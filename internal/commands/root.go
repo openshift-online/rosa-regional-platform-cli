@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/openshift-online/rosa-regional-platform-cli/internal/commands/version"
 	pkgconfig "github.com/openshift-online/rosa-regional-platform-cli/internal/config"
 	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
 )
 
 var verbose bool
@@ -33,10 +35,18 @@ var rootCmd = &cobra.Command{
 		if profile, _ := cmd.Flags().GetString("profile"); profile != "" {
 			_ = os.Setenv(internalaws.EnvProfile, profile)
 		}
+		if verbose {
+			// Dev/debug only: bump klog verbosity so client-go's REST client
+			// logs full HTTP request/response bodies to stderr. This surfaces
+			// the real platform API error body, which client-go otherwise
+			// swallows behind generic errors like "unknown (post clusters)".
+			_ = flag.Set("v", "8")
+		}
 	},
 }
 
 func init() {
+	klog.InitFlags(nil)
 	rootCmd.PersistentFlags().String("region", "", "AWS region (overrides default)")
 	rootCmd.PersistentFlags().String("profile", "", "AWS profile (overrides default)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
